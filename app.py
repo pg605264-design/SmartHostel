@@ -18,11 +18,14 @@ def create_app(config_class: type = Config) -> Flask:
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    # --- Create required directories ---
     os.makedirs(os.path.join(app.root_path, "database"), exist_ok=True)
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
+    # --- Initialize database ---
     db.init_app(app)
 
+    # --- Initialize Flask-Login ---
     login_manager = LoginManager()
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Please log in to access this page."
@@ -52,14 +55,30 @@ def create_app(config_class: type = Config) -> Flask:
     app.register_blueprint(complaint_bp)
     app.register_blueprint(admin_bp)
 
+    # --- Create database tables ---
+    # This is important for Render/PostgreSQL.
+    # Gunicorn imports app.py instead of running it as __main__,
+    # so db.create_all() must be executed here.
+    with app.app_context():
+        db.create_all()
+
     # --- Error handlers ---
     def _wants_json():
-        return request.path.startswith("/api/") or request.accept_mimetypes["application/json"] >= request.accept_mimetypes["text/html"]
+        return (
+            request.path.startswith("/api/")
+            or request.accept_mimetypes["application/json"]
+            >= request.accept_mimetypes["text/html"]
+        )
 
     def _error_response(code, message):
         if _wants_json():
             return jsonify({"error": message}), code
-        return render_template("errors.html", code=code, message=message), code
+
+        return render_template(
+            "errors.html",
+            code=code,
+            message=message
+        ), code
 
     @app.errorhandler(400)
     def bad_request(e):
@@ -67,27 +86,43 @@ def create_app(config_class: type = Config) -> Flask:
 
     @app.errorhandler(401)
     def unauthorized(e):
-        return _error_response(401, "You need to log in to do that.")
+        return _error_response(
+            401,
+            "You need to log in to do that."
+        )
 
     @app.errorhandler(403)
     def forbidden(e):
-        return _error_response(403, "You don't have permission to access this.")
+        return _error_response(
+            403,
+            "You don't have permission to access this."
+        )
 
     @app.errorhandler(404)
     def not_found(e):
-        return _error_response(404, "That page doesn't exist.")
+        return _error_response(
+            404,
+            "That page doesn't exist."
+        )
 
     @app.errorhandler(500)
     def server_error(e):
         app.logger.exception("Internal server error")
-        return _error_response(500, "Something went wrong on our end.")
+        return _error_response(
+            500,
+            "Something went wrong on our end."
+        )
 
     return app
 
 
+# --- Create Flask application ---
 app = create_app()
 
+
+# --- Local development ---
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=app.config["DEBUG"], port=5001)
+    app.run(
+        debug=app.config["DEBUG"],
+        port=5001
+    )
