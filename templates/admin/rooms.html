@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Room Management — SmartHostel Admin{% endblock %}
+
+{% block content %}
+<div class="page-header flex-header">
+  <div>
+    <h1>Room Management</h1>
+    <p class="page-subtitle">View and configure hostel rooms, capacities, and statuses</p>
+  </div>
+  <a href="{{ url_for('admin.create_room_view') }}" class="btn btn-primary">
+    <i class="fa-solid fa-plus"></i> Add New Room
+  </a>
+</div>
+
+<form method="GET" action="{{ url_for('admin.rooms') }}" class="search-filter-form">
+  <div class="search-box">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" name="search" value="{{ search }}" placeholder="Search by room number, block, or hostel...">
+  </div>
+
+  <select name="hostel" onchange="this.form.submit()" class="filter-select">
+    <option value="">All Hostels</option>
+    {% for h in hostels %}
+    <option value="{{ h }}" {% if hostel_filter == h %}selected{% endif %}>{{ h }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="status" onchange="this.form.submit()" class="filter-select">
+    <option value="">All Statuses</option>
+    {% for st in statuses %}
+    <option value="{{ st }}" {% if status_filter == st %}selected{% endif %}>{{ st }}</option>
+    {% endfor %}
+  </select>
+
+  <button type="submit" class="btn btn-primary">Filter</button>
+  {% if search or hostel_filter or status_filter %}
+  <a href="{{ url_for('admin.rooms') }}" class="btn btn-outline">Reset</a>
+  {% endif %}
+</form>
+
+<div class="card-section">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Room Number</th>
+          <th>Hostel</th>
+          <th>Block</th>
+          <th>Floor</th>
+          <th>Room Type</th>
+          <th>Capacity</th>
+          <th>Occupancy</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rooms %}
+        <tr>
+          <td><strong>{{ r.display_name }}</strong></td>
+          <td>{{ r.hostel }}</td>
+          <td>Block {{ r.block }}</td>
+          <td>Floor {{ r.floor }}</td>
+          <td>{{ r.room_type }}</td>
+          <td>{{ r.capacity }}</td>
+          <td>
+            <div class="occupancy-bar-wrapper">
+              <div class="occupancy-bar-info">
+                <span>{{ r.occupancy_count }} / {{ r.capacity }}</span>
+                <span>{{ (r.occupancy_count / r.capacity * 100)|int }}%</span>
+              </div>
+              <div class="occupancy-bar-track">
+                <div class="occupancy-bar-fill {% if r.is_full %}full{% elif r.occupancy_count == 0 %}empty{% endif %}" style="width: {{ (r.occupancy_count / r.capacity * 100)|int }}%;"></div>
+              </div>
+            </div>
+          </td>
+          <td><span class="status-pill status-{{ r.status.lower().replace(' ', '-') }}">{{ r.status }}</span></td>
+          <td>
+            <a href="{{ url_for('admin.room_detail', room_id=r.id) }}" class="btn-sm btn-outline"><i class="fa-solid fa-users-gear"></i> Assign</a>
+            <a href="{{ url_for('admin.edit_room', room_id=r.id) }}" class="btn-sm btn-secondary"><i class="fa-solid fa-pen"></i> Edit</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center py-4">No rooms found matching criteria.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Student Management — SmartHostel Admin{% endblock %}
+
+{% block content %}
+<div class="page-header flex-header">
+  <div>
+    <h1>Student Management</h1>
+    <p class="page-subtitle">View, search, and manage registered student accounts</p>
+  </div>
+</div>
+
+<form method="GET" action="{{ url_for('admin.students') }}" class="search-filter-form">
+  <div class="search-box">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" name="search" value="{{ search }}" placeholder="Search by name, email, or Student ID...">
+  </div>
+
+  <select name="hostel" onchange="this.form.submit()" class="filter-select">
+    <option value="">All Hostels</option>
+    {% for h in hostels %}
+    <option value="{{ h }}" {% if hostel_filter == h %}selected{% endif %}>{{ h }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="status" onchange="this.form.submit()" class="filter-select">
+    <option value="">All Statuses</option>
+    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Only</option>
+    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive Only</option>
+  </select>
+
+  <button type="submit" class="btn btn-primary">Filter</button>
+  {% if search or hostel_filter or status_filter %}
+  <a href="{{ url_for('admin.students') }}" class="btn btn-outline">Reset</a>
+  {% endif %}
+</form>
+
+<div class="card-section">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Student Name</th>
+          <th>Student ID</th>
+          <th>Course & Year</th>
+          <th>Hostel Room</th>
+          <th>Account Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td>
+            <div class="user-table-cell">
+              <div class="avatar avatar-xs">{{ s.name[:1] }}</div>
+              <div>
+                <strong>{{ s.name }}</strong>
+                <div class="text-subtle">{{ s.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td><code>{{ s.profile.student_id if s.profile else 'No Profile' }}</code></td>
+          <td>{{ s.profile.course or 'N/A' }} ({{ s.profile.year ~ ' Yr' if s.profile and s.profile.year else 'N/A' }})</td>
+          <td>
+            {% if s.profile and s.profile.room %}
+            <span class="badge badge-primary"><i class="fa-solid fa-door-open"></i> {{ s.profile.room.display_name }}</span>
+            {% else %}
+            <span class="badge"><i class="fa-solid fa-ban"></i> Unassigned</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if s.is_active_account %}
+            <span class="status-pill status-available">Active</span>
+            {% else %}
+            <span class="status-pill status-disabled">Disabled</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('admin.student_detail', student_id=s.id) }}" class="btn-sm btn-outline">
+              <i class="fa-solid fa-sliders"></i> Manage
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center py-4">No students found matching filters.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

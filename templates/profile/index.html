@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}My Profile — SmartHostel{% endblock %}
+
+{% block content %}
+<div class="page-header flex-header">
+  <div>
+    <h1>My Profile</h1>
+    <p class="page-subtitle">Personal, academic, and hostel room information</p>
+  </div>
+  <a href="{{ url_for('profile.edit') }}" class="btn btn-primary">
+    <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+  </a>
+</div>
+
+<div class="profile-grid">
+  <!-- Personal Information Card -->
+  <div class="card-section">
+    <div class="card-header">
+      <i class="fa-solid fa-id-card"></i>
+      <h3>Personal Information</h3>
+    </div>
+    <div class="info-list">
+      <div class="info-item">
+        <span class="info-label">Full Name</span>
+        <span class="info-value"><strong>{{ current_user.name }}</strong></span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Email Address</span>
+        <span class="info-value">{{ current_user.email }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Phone Number</span>
+        <span class="info-value">{{ current_user.phone or 'Not provided' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Account Role</span>
+        <span class="info-value"><span class="badge badge-info">{{ current_user.role.replace('_', ' ').title() }}</span></span>
+      </div>
+    </div>
+  </div>
+
+  {% if current_user.role == 'student' %}
+  <!-- Academic Details Card -->
+  <div class="card-section">
+    <div class="card-header">
+      <i class="fa-solid fa-graduation-cap"></i>
+      <h3>Academic Details</h3>
+    </div>
+    <div class="info-list">
+      <div class="info-item">
+        <span class="info-label">Student ID</span>
+        <span class="info-value"><code>{{ profile.student_id if profile else 'N/A' }}</code></span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Course / Department</span>
+        <span class="info-value">{{ profile.course if profile and profile.course else 'Not specified' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Year of Study</span>
+        <span class="info-value">{{ profile.year ~ ' Year' if profile and profile.year else 'Not specified' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hostel & Room Information Card -->
+  <div class="card-section">
+    <div class="card-header">
+      <i class="fa-solid fa-building-user"></i>
+      <h3>Hostel Assignment</h3>
+    </div>
+    {% if room %}
+    <div class="info-list">
+      <div class="info-item">
+        <span class="info-label">Hostel Name</span>
+        <span class="info-value"><strong>{{ room.hostel }}</strong></span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Block & Floor</span>
+        <span class="info-value">Block {{ room.block }}, Floor {{ room.floor }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Room Number</span>
+        <span class="info-value"><strong>{{ room.display_name }}</strong></span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Room Type</span>
+        <span class="info-value">{{ room.room_type }} (Capacity: {{ room.capacity }})</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Room Status</span>
+        <span class="info-value">
+          <span class="status-pill status-{{ room.status.lower().replace(' ', '-') }}">{{ room.status }}</span>
+        </span>
+      </div>
+    </div>
+    <div class="card-footer-action mt-3">
+      <a href="{{ url_for('room.my_room') }}" class="btn btn-outline btn-block">
+        <i class="fa-solid fa-door-open"></i> View Room Details & Occupants
+      </a>
+    </div>
+    {% else %}
+    <div class="empty-state-sm">
+      <i class="fa-solid fa-door-closed"></i>
+      <p>No room assigned yet. Room assignment is pending warden verification.</p>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Security & Password Card -->
+  <div class="card-section">
+    <div class="card-header">
+      <i class="fa-solid fa-lock"></i>
+      <h3>Security & Password</h3>
+    </div>
+    <form method="POST" action="{{ url_for('profile.change_password') }}" class="form-compact">
+      <label class="field">
+        <span>Current Password *</span>
+        <div class="input-with-icon">
+          <input type="password" id="currPassword" name="current_password" required>
+          <button type="button" class="pw-toggle-btn" onclick="togglePasswordVisibility('currPassword', this)">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </label>
+
+      <label class="field">
+        <span>New Password *</span>
+        <div class="input-with-icon">
+          <input type="password" id="newPassword" name="new_password" required minlength="6" oninput="checkPasswordStrength(this.value)">
+          <button type="button" class="pw-toggle-btn" onclick="togglePasswordVisibility('newPassword', this)">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+        <!-- Password Strength Meter -->
+        <div class="pw-strength-container" id="pwStrengthMeter" style="display: none;">
+          <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
+          <span class="pw-strength-text" id="pwStrengthText">Strength</span>
+        </div>
+      </label>
+
+      <label class="field">
+        <span>Confirm New Password *</span>
+        <div class="input-with-icon">
+          <input type="password" id="confirmPassword" name="confirm_password" required>
+          <button type="button" class="pw-toggle-btn" onclick="togglePasswordVisibility('confirmPassword', this)">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </label>
+
+      <button type="submit" class="btn btn-primary btn-block mt-2" onclick="setBtnLoading(this)">
+        <i class="fa-solid fa-key"></i> Change Password
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function checkPasswordStrength(val) {
+  const container = document.getElementById('pwStrengthMeter');
+  const fill = document.getElementById('pwStrengthFill');
+  const text = document.getElementById('pwStrengthText');
+
+  if (!val) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+
+  let score = 0;
+  if (val.length >= 6) score += 1;
+  if (val.length >= 10) score += 1;
+  if (/[A-Z]/.test(val)) score += 1;
+  if (/[0-9]/.test(val)) score += 1;
+  if (/[^A-Za-z0-9]/.test(val)) score += 1;
+
+  if (score <= 2) {
+    fill.style.width = '33%';
+    fill.style.background = 'var(--danger)';
+    text.innerText = 'Weak password';
+    text.style.color = 'var(--danger)';
+  } else if (score <= 4) {
+    fill.style.width = '66%';
+    fill.style.background = 'var(--warning)';
+    text.innerText = 'Medium strength';
+    text.style.color = 'var(--warning)';
+  } else {
+    fill.style.width = '100%';
+    fill.style.background = 'var(--success)';
+    text.innerText = 'Strong password';
+    text.style.color = 'var(--success)';
+  }
+}
+</script>
+{% endblock %}

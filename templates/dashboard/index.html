@@ -1,0 +1,593 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — SmartHostel{% endblock %}
+
+{% block content %}
+
+{% if current_user.role == 'student' %}
+<!-- ==================== STUDENT DASHBOARD ==================== -->
+
+<!-- 1. DASHBOARD HERO / WELCOME SECTION -->
+<div class="welcome-hero-card">
+  <div class="hero-bg-accent"></div>
+  <div class="hero-content">
+    <div class="hero-text">
+      <span class="hero-date-badge"><i class="fa-regular fa-calendar"></i> {{ today }}</span>
+      <h1>{{ greeting }}, {{ current_user.name.split(' ')[0] }} 👋</h1>
+      <p class="hero-subtitle">Here's what's happening in your hostel today.</p>
+
+      <div class="hero-status-pills">
+        {% if room %}
+        <span class="pill-chip"><i class="fa-solid fa-door-open"></i> Room {{ room.display_name }} ({{ room.hostel }})</span>
+        {% else %}
+        <span class="pill-chip pill-chip-warning"><i class="fa-solid fa-door-closed"></i> Room Pending Assignment</span>
+        {% endif %}
+
+        <span class="pill-chip pill-chip-{{ quick_status_type }}">
+          <i class="fa-solid {% if quick_status_type == 'warning' %}fa-triangle-exclamation{% elif quick_status_type == 'info' %}fa-clock{% else %}fa-circle-check{% endif %}"></i>
+          {{ quick_status_msg }}
+        </span>
+      </div>
+    </div>
+
+    <div class="hero-visual-icon">
+      <i class="fa-solid fa-house-chimney-window"></i>
+    </div>
+  </div>
+</div>
+
+<!-- 2. INTERACTIVE SUMMARY CARDS -->
+<div class="stat-grid dashboard-stat-grid">
+  <a href="{{ url_for('cleaning.index') }}" class="stat-card clickable-card">
+    <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-broom"></i></div>
+    <div class="stat-details">
+      <span class="stat-label">NEXT CLEANING</span>
+      <strong class="stat-value text-truncate">{{ next_cleaning_date }}</strong>
+      <span class="stat-subtext">View schedule <i class="fa-solid fa-arrow-right"></i></span>
+    </div>
+  </a>
+
+  <a href="{{ url_for('complaint.index', status='Pending') }}" class="stat-card clickable-card">
+    <div class="stat-icon stat-icon-orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div class="stat-details">
+      <span class="stat-label">PENDING COMPLAINTS</span>
+      <strong class="stat-value">{{ pending_complaints_count }}</strong>
+      <span class="stat-subtext">View active issues <i class="fa-solid fa-arrow-right"></i></span>
+    </div>
+  </a>
+
+  <a href="{{ url_for('complaint.index', status='Resolved') }}" class="stat-card clickable-card">
+    <div class="stat-icon stat-icon-green"><i class="fa-solid fa-circle-check"></i></div>
+    <div class="stat-details">
+      <span class="stat-label">RESOLVED COMPLAINTS</span>
+      <strong class="stat-value">{{ resolved_complaints_count }}</strong>
+      <span class="stat-subtext">View resolved history <i class="fa-solid fa-arrow-right"></i></span>
+    </div>
+  </a>
+
+  <a href="{{ url_for('room.my_room') }}" class="stat-card clickable-card">
+    <div class="stat-icon stat-icon-purple"><i class="fa-solid fa-door-closed"></i></div>
+    <div class="stat-details">
+      <span class="stat-label">ROOM STATUS</span>
+      <strong class="stat-value text-truncate">{{ room_status_text }}</strong>
+      <span class="stat-subtext">View room details <i class="fa-solid fa-arrow-right"></i></span>
+    </div>
+  </a>
+</div>
+
+<!-- 3. PROMINENT QUICK ACTIONS -->
+<div class="quick-actions-section mb-6">
+  <div class="section-title-row">
+    <h3>Quick Actions</h3>
+  </div>
+  <div class="quick-action-cards">
+    <button type="button" class="action-card-btn" onclick="toggleModal('quickCleaningModal')">
+      <div class="action-icon action-icon-blue"><i class="fa-solid fa-broom"></i></div>
+      <div class="action-text">
+        <strong>Request Cleaning</strong>
+        <span>Schedule room cleaning</span>
+      </div>
+    </button>
+
+    <button type="button" class="action-card-btn" onclick="toggleModal('quickComplaintModal')">
+      <div class="action-icon action-icon-orange"><i class="fa-solid fa-plus"></i></div>
+      <div class="action-text">
+        <strong>Raise Complaint</strong>
+        <span>Report hostel issue</span>
+      </div>
+    </button>
+
+    <a href="{{ url_for('timetable.index') }}" class="action-card-btn">
+      <div class="action-icon action-icon-purple"><i class="fa-solid fa-calendar-days"></i></div>
+      <div class="action-text">
+        <strong>Timetable</strong>
+        <span>Check class schedule</span>
+      </div>
+    </a>
+
+    <a href="{{ url_for('complaint.index') }}" class="action-card-btn">
+      <div class="action-icon action-icon-green"><i class="fa-solid fa-list-check"></i></div>
+      <div class="action-text">
+        <strong>My Complaints</strong>
+        <span>Track issue status</span>
+      </div>
+    </a>
+
+    <a href="{{ url_for('profile.index') }}" class="action-card-btn">
+      <div class="action-icon action-icon-teal"><i class="fa-solid fa-user"></i></div>
+      <div class="action-text">
+        <strong>My Profile</strong>
+        <span>Personal & room info</span>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- MAIN TWO-COLUMN DASHBOARD GRID -->
+<div class="dashboard-two-column">
+
+  <!-- LEFT COLUMN -->
+  <div class="column-main">
+    
+    <!-- 4 & 5. TODAY'S OVERVIEW & UPCOMING TIMETABLE WIDGET -->
+    <div class="card-section">
+      <div class="card-header flex-between">
+        <div class="title-with-icon">
+          <i class="fa-solid fa-calendar-day"></i>
+          <h3>Today's Classes ({{ today_day_name }})</h3>
+        </div>
+        <a href="{{ url_for('timetable.index') }}" class="link-btn">View Full Timetable <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+
+      {% if next_class %}
+      <div class="next-class-highlight">
+        <div class="highlight-badge"><i class="fa-solid fa-clock"></i> NEXT / CURRENT CLASS</div>
+        <div class="highlight-body">
+          <h4>{{ next_class.subject }}</h4>
+          <p><i class="fa-regular fa-clock"></i> {{ next_class.start_time }} – {{ next_class.end_time }}</p>
+          <p><i class="fa-solid fa-location-dot"></i> {{ next_class.room_number }} {% if next_class.faculty %}• {{ next_class.faculty }}{% endif %}</p>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if today_classes %}
+      <div class="today-classes-list">
+        {% for cls in today_classes %}
+        <div class="class-item-row {% if next_class and next_class.id == cls.id %}active-class-row{% endif %}">
+          <div class="class-time-col">
+            <strong>{{ cls.start_time }}</strong>
+            <span>{{ cls.end_time }}</span>
+          </div>
+          <div class="class-info-col">
+            <strong>{{ cls.subject }}</strong>
+            <span>Room: {{ cls.room_number }} {% if cls.faculty %}• Faculty: {{ cls.faculty }}{% endif %}</span>
+          </div>
+          <span class="badge badge-secondary">{{ cls.day }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state-sm">
+        <i class="fa-solid fa-calendar-check"></i>
+        <h4>No classes scheduled for today</h4>
+        <p>Enjoy your free day or review your full weekly schedule.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- 6. CLEANING STATUS WIDGET WITH PROGRESS TRACKER -->
+    <div class="card-section">
+      <div class="card-header flex-between">
+        <div class="title-with-icon">
+          <i class="fa-solid fa-broom"></i>
+          <h3>Room Cleaning Status</h3>
+        </div>
+        <a href="{{ url_for('cleaning.index') }}" class="link-btn">View All <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+
+      {% if latest_cleaning %}
+      <div class="cleaning-widget-box">
+        <div class="cleaning-widget-info">
+          <div>
+            <strong>Date & Slot:</strong> {{ latest_cleaning.preferred_date }} ({{ latest_cleaning.preferred_slot }})
+            {% if latest_cleaning.assigned_staff %}
+            <div class="text-subtle"><i class="fa-solid fa-user-check"></i> Staff: {{ latest_cleaning.assigned_staff.name }}</div>
+            {% endif %}
+          </div>
+          <span class="status-pill status-{{ latest_cleaning.status.lower().replace(' ', '-') }}">{{ latest_cleaning.status }}</span>
+        </div>
+
+        <!-- Step Progress Indicator -->
+        <div class="progress-step-tracker">
+          <div class="step-item {% if cleaning_step >= 1 %}step-active{% endif %}">
+            <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+            <span>Requested</span>
+          </div>
+          <div class="step-line {% if cleaning_step >= 2 %}line-active{% endif %}"></div>
+          <div class="step-item {% if cleaning_step >= 2 %}step-active{% endif %}">
+            <div class="step-circle"><i class="fa-solid fa-calendar-check"></i></div>
+            <span>Scheduled</span>
+          </div>
+          <div class="step-line {% if cleaning_step >= 3 %}line-active{% endif %}"></div>
+          <div class="step-item {% if cleaning_step >= 3 %}step-active{% endif %}">
+            <div class="step-circle"><i class="fa-solid fa-spinner"></i></div>
+            <span>In Progress</span>
+          </div>
+          <div class="step-line {% if cleaning_step >= 4 %}line-active{% endif %}"></div>
+          <div class="step-item {% if cleaning_step >= 4 %}step-active{% endif %}">
+            <div class="step-circle"><i class="fa-solid fa-circle-check"></i></div>
+            <span>Completed</span>
+          </div>
+        </div>
+
+        <div class="widget-action-btns">
+          <a href="{{ url_for('cleaning.request_cleaning') }}" class="btn btn-sm btn-outline">Request New Cleaning</a>
+          <a href="{{ url_for('cleaning.index') }}" class="btn btn-sm btn-secondary">View Details</a>
+        </div>
+      </div>
+      {% else %}
+      <div class="empty-state-sm">
+        <i class="fa-solid fa-broom"></i>
+        <h4>No cleaning scheduled 🧹</h4>
+        <p>You haven't submitted a room cleaning request yet.</p>
+        <button type="button" class="btn btn-sm btn-primary mt-2" onclick="toggleModal('quickCleaningModal')">Request Cleaning</button>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="column-sidebar">
+    
+    <!-- 10. HOSTEL ROOM CARD -->
+    <div class="card-section">
+      <div class="card-header">
+        <i class="fa-solid fa-building"></i>
+        <h3>Your Room</h3>
+      </div>
+      {% if room %}
+      <div class="room-mini-card">
+        <div class="room-badge-row">
+          <span class="badge badge-primary">{{ room.hostel }}</span>
+          <span class="status-pill status-{{ room.status.lower().replace(' ', '-') }}">{{ room.status }}</span>
+        </div>
+        <h2 class="room-title">ROOM {{ room.display_name }}</h2>
+        <p class="room-sub">Block {{ room.block }} • Floor {{ room.floor }} • {{ room.room_type }}</p>
+
+        {% if roommates %}
+        <div class="roommates-section">
+          <h5>Roommates ({{ roommates|length }}):</h5>
+          <div class="roommate-chips">
+            {% for r in roommates %}
+            <div class="rm-chip">
+              <div class="avatar avatar-xs">{{ r.user.name[:1] }}</div>
+              <span>{{ r.user.name }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="empty-state-sm">
+        <i class="fa-solid fa-door-closed"></i>
+        <h4>No room assigned yet</h4>
+        <p>Contact the hostel warden for room linking.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- 7. RECENT COMPLAINTS WIDGET -->
+    <div class="card-section">
+      <div class="card-header flex-between">
+        <div class="title-with-icon">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <h3>Recent Complaints</h3>
+        </div>
+        <a href="{{ url_for('complaint.raise_complaint') }}" class="link-btn">+ Raise</a>
+      </div>
+
+      {% if recent_complaints %}
+      <div class="mini-complaint-list">
+        {% for c in recent_complaints %}
+        <a href="{{ url_for('complaint.detail', complaint_id=c.id) }}" class="mini-complaint-item">
+          <div class="mc-main">
+            <strong>#{{ c.id }} - {{ c.title }}</strong>
+            <div class="mc-meta"><span class="badge badge-info">{{ c.category }}</span> • {{ c.created_at.strftime('%b %d') }}</div>
+          </div>
+          <span class="status-pill status-{{ c.status.lower().replace(' ', '-') }}">{{ c.status }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      <a href="{{ url_for('complaint.index') }}" class="btn btn-sm btn-outline btn-block mt-3">View All Complaints</a>
+      {% else %}
+      <div class="empty-state-sm">
+        <i class="fa-solid fa-square-check"></i>
+        <h4>No complaints filed yet</h4>
+        <p>If you face any maintenance issue, report it here.</p>
+        <button type="button" class="btn btn-sm btn-outline mt-2" onclick="toggleModal('quickComplaintModal')">Raise Complaint</button>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- 9. RECENT ACTIVITY TIMELINE -->
+    <div class="card-section">
+      <div class="card-header">
+        <i class="fa-solid fa-timeline"></i>
+        <h3>Recent Activity</h3>
+      </div>
+      {% if timeline %}
+      <div class="vertical-timeline">
+        {% for item in timeline %}
+        <div class="timeline-item">
+          <div class="timeline-dot"><i class="fa-solid {{ item.icon }}"></i></div>
+          <div class="timeline-content">
+            <strong>{{ item.title }}</strong>
+            <p>{{ item.desc }}</p>
+            <span class="timeline-time">{{ item.date.strftime('%b %d, %I:%M %p') }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-secondary text-center py-3">No recent activity logged.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<!-- QUICK MODALS -->
+<!-- 1. Quick Request Cleaning Modal -->
+<div class="modal" id="quickCleaningModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Request Room Cleaning</h3>
+      <button type="button" class="modal-close" onclick="toggleModal('quickCleaningModal')">&times;</button>
+    </div>
+    <form method="POST" action="{{ url_for('cleaning.request_cleaning') }}">
+      <div class="form-grid">
+        <label class="field">
+          <span>Preferred Date *</span>
+          <input type="date" name="preferred_date" required>
+        </label>
+        <label class="field">
+          <span>Time Slot *</span>
+          <select name="preferred_slot" class="input-select" required>
+            <option value="">Select Slot</option>
+            <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
+            <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
+            <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
+            <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
+            <option value="03:00 PM - 04:00 PM">03:00 PM - 04:00 PM</option>
+          </select>
+        </label>
+      </div>
+      <label class="field">
+        <span>Cleaning Notes / Special Instructions</span>
+        <textarea name="notes" rows="2" placeholder="e.g. Mop floor and clear trash bin"></textarea>
+      </label>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="toggleModal('quickCleaningModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 2. Quick Raise Complaint Modal -->
+<div class="modal" id="quickComplaintModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Raise Maintenance Complaint</h3>
+      <button type="button" class="modal-close" onclick="toggleModal('quickComplaintModal')">&times;</button>
+    </div>
+    <form method="POST" action="{{ url_for('complaint.raise_complaint') }}">
+      <label class="field">
+        <span>Category *</span>
+        <select name="category" class="input-select" required>
+          <option value="">Select Category</option>
+          {% for cat in categories %}
+          <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span>Complaint Title *</span>
+        <input type="text" name="title" placeholder="e.g. Tap leaking / Fan not working" required>
+      </label>
+      <label class="field">
+        <span>Description *</span>
+        <textarea name="description" rows="3" placeholder="Describe the problem..." required></textarea>
+      </label>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="toggleModal('quickComplaintModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Submit Complaint</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% elif current_user.role == 'cleaning_staff' %}
+<!-- ==================== CLEANING STAFF DASHBOARD ==================== -->
+<div class="page-header">
+  <h1>Cleaning Staff Dashboard 👋</h1>
+  <p class="page-subtitle">{{ today }} • Manage assigned room cleanings</p>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-broom"></i></div>
+    <div>
+      <span class="stat-label">Total Assigned Tasks</span>
+      <strong class="stat-value">{{ assigned_count }}</strong>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-orange"><i class="fa-solid fa-clock"></i></div>
+    <div>
+      <span class="stat-label">Pending / Scheduled</span>
+      <strong class="stat-value">{{ pending_count }}</strong>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green"><i class="fa-solid fa-circle-check"></i></div>
+    <div>
+      <span class="stat-label">Completed Tasks</span>
+      <strong class="stat-value">{{ completed_count }}</strong>
+    </div>
+  </div>
+</div>
+
+<div class="quick-actions">
+  <a href="{{ url_for('cleaning.index') }}" class="qa-btn"><i class="fa-solid fa-list-check"></i> View Full Cleaning Queue</a>
+  <a href="{{ url_for('profile.index') }}" class="qa-btn"><i class="fa-solid fa-user"></i> My Profile</a>
+</div>
+
+{% if assigned_tasks %}
+<div class="card-section">
+  <h3>Active Cleaning Tasks</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Room</th>
+          <th>Preferred Date & Slot</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in assigned_tasks %}
+        <tr>
+          <td>{{ t.student.name }}</td>
+          <td>{{ t.room.display_name if t.room else 'N/A' }}</td>
+          <td>{{ t.preferred_date }} ({{ t.preferred_slot }})</td>
+          <td><span class="status-pill status-{{ t.status.lower().replace(' ', '-') }}">{{ t.status }}</span></td>
+          <td><a href="{{ url_for('cleaning.index') }}" class="btn-sm btn-primary">Manage Task</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% elif current_user.role == 'maintenance_staff' %}
+<!-- ==================== MAINTENANCE STAFF DASHBOARD ==================== -->
+<div class="page-header">
+  <h1>Maintenance Staff Dashboard 👋</h1>
+  <p class="page-subtitle">{{ today }} • Manage assigned hostel maintenance complaints</p>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-orange"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+    <div>
+      <span class="stat-label">Assigned Complaints</span>
+      <strong class="stat-value">{{ assigned_count }}</strong>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-red"><i class="fa-solid fa-bolt"></i></div>
+    <div>
+      <span class="stat-label">Emergency Complaints</span>
+      <strong class="stat-value">{{ emergency_count }}</strong>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green"><i class="fa-solid fa-circle-check"></i></div>
+    <div>
+      <span class="stat-label">Resolved Complaints</span>
+      <strong class="stat-value">{{ resolved_count }}</strong>
+    </div>
+  </div>
+</div>
+
+<div class="quick-actions">
+  <a href="{{ url_for('complaint.index') }}" class="qa-btn"><i class="fa-solid fa-wrench"></i> View Complaint Queue</a>
+  <a href="{{ url_for('profile.index') }}" class="qa-btn"><i class="fa-solid fa-user"></i> My Profile</a>
+</div>
+
+{% if assigned_complaints %}
+<div class="card-section">
+  <h3>Assigned Maintenance Tasks</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Title</th>
+          <th>Student</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in assigned_complaints %}
+        <tr>
+          <td><span class="badge badge-info">{{ c.category }}</span></td>
+          <td><strong>{{ c.title }}</strong></td>
+          <td>{{ c.student.name }}</td>
+          <td><span class="status-pill status-{{ c.status.lower().replace(' ', '-') }}">{{ c.status }}</span></td>
+          <td><a href="{{ url_for('complaint.detail', complaint_id=c.id) }}" class="btn-sm btn-primary">Update Status</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- ==================== ADMIN DASHBOARD ==================== -->
+<div class="page-header">
+  <h1>Admin Management Center 👋</h1>
+  <p class="page-subtitle">{{ today }} • SmartHostel System Overview</p>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-users"></i></div>
+    <div>
+      <span class="stat-label">Total Active Students</span>
+      <strong class="stat-value">{{ total_students }}</strong>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-purple"><i class="fa-solid fa-door-open"></i></div>
+    <div>
+      <span class="stat-label">Rooms (Occupied / Total)</span>
+      <strong class="stat-value">{{ occupied_rooms }} / {{ total_rooms }}</strong>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div>
+      <span class="stat-label">Pending Complaints</span>
+      <strong class="stat-value">{{ pending_complaints_count }}</strong>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green"><i class="fa-solid fa-broom"></i></div>
+    <div>
+      <span class="stat-label">Active Cleaning Tasks</span>
+      <strong class="stat-value">{{ active_cleanings }}</strong>
+    </div>
+  </div>
+</div>
+
+<div class="quick-actions">
+  <a href="{{ url_for('admin.students') }}" class="qa-btn"><i class="fa-solid fa-users"></i> Manage Students</a>
+  <a href="{{ url_for('admin.rooms') }}" class="qa-btn"><i class="fa-solid fa-door-open"></i> Manage Rooms</a>
+  <a href="{{ url_for('admin.create_room_view') }}" class="qa-btn"><i class="fa-solid fa-plus"></i> Add New Room</a>
+  <a href="{{ url_for('complaint.index') }}" class="qa-btn"><i class="fa-solid fa-triangle-exclamation"></i> Complaints</a>
+  <a href="{{ url_for('cleaning.index') }}" class="qa-btn"><i class="fa-solid fa-broom"></i> Cleanings</a>
+</div>
+{% endif %}
+
+{% endblock %}

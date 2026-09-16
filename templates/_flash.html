@@ -1,0 +1,21 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="toast-stack" id="toastStack">
+      {% for category, message in messages %}
+        <div class="toast toast-{{ category }}">
+          {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
+          {% elif category == 'error' %}<i class="fa-solid fa-circle-xmark"></i>
+          {% elif category == 'warning' %}<i class="fa-solid fa-triangle-exclamation"></i>
+          {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+          <span>{{ message }}</span>
+          <button type="button" class="toast-close-btn" onclick="dismissToast(this)">&times;</button>
+        </div>
+      {% endfor %}
+    </div>
+    <script>
+      setTimeout(() => {
+        document.querySelectorAll('.toast').forEach(t => t.classList.add('toast-hide'));
+      }, 4500);
+    </script>
+  {% endif %}
+{% endwith %}

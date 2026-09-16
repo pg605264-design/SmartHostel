@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Complaint #{{ complaint.id }} — SmartHostel{% endblock %}
+
+{% block content %}
+<div class="page-header flex-header">
+  <div>
+    <a href="{{ url_for('complaint.index') }}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Complaints</a>
+    <h1>Complaint #{{ complaint.id }}: {{ complaint.title }}</h1>
+    <p class="page-subtitle">Submitted on {{ complaint.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+  </div>
+  <div>
+    <span class="status-pill status-{{ complaint.status.lower().replace(' ', '-') }} badge-lg">{{ complaint.status }}</span>
+  </div>
+</div>
+
+<div class="profile-grid">
+  <!-- Issue Details -->
+  <div class="card-section">
+    <div class="card-header">
+      <i class="fa-solid fa-circle-info"></i>
+      <h3>Issue Details</h3>
+    </div>
+    <div class="info-list">
+      <div class="info-item">
+        <span class="info-label">Category</span>
+        <span class="info-value"><span class="badge badge-info">{{ complaint.category }}</span></span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Submitted By</span>
+        <span class="info-value"><strong>{{ complaint.student.name }}</strong> ({{ complaint.student.email }})</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Room / Location</span>
+        <span class="info-value">{{ complaint.student.profile.room.display_name if complaint.student.profile and complaint.student.profile.room else 'N/A' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Assigned Staff</span>
+        <span class="info-value">{{ complaint.assigned_staff.name if complaint.assigned_staff else 'Not assigned yet' }}</span>
+      </div>
+    </div>
+
+    <div class="description-box">
+      <h4>Description:</h4>
+      <p>{{ complaint.description }}</p>
+    </div>
+
+    {% if complaint.resolution_notes %}
+    <div class="resolution-box">
+      <h4><i class="fa-solid fa-square-check"></i> Resolution / Staff Notes:</h4>
+      <p>{{ complaint.resolution_notes }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if current_user.role in ['admin', 'maintenance_staff', 'cleaning_staff'] %}
+  <!-- Staff Update Form -->
+  <div class="card-section">
+    <div class="card-header">
+      <i class="fa-solid fa-wrench"></i>
+      <h3>Update Complaint Status</h3>
+    </div>
+    <form method="POST" action="{{ url_for('complaint.update_status', complaint_id=complaint.id) }}">
+      <label class="field">
+        <span>Change Status</span>
+        <select name="status" class="input-select">
+          {% for st in statuses %}
+          <option value="{{ st }}" {% if complaint.status == st %}selected{% endif %}>{{ st }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      {% if current_user.role == 'admin' %}
+      <label class="field">
+        <span>Assign Staff Member</span>
+        <select name="assigned_staff_id" class="input-select">
+          <option value="0">Unassigned</option>
+          {% for s in staff_members %}
+          <option value="{{ s.id }}" {% if complaint.assigned_staff_id == s.id %}selected{% endif %}>{{ s.name }} ({{ s.role.replace('_', ' ').title() }})</option>
+          {% endfor %}
+        </select>
+      </label>
+      {% endif %}
+
+      <label class="field">
+        <span>Resolution Notes / Work Update</span>
+        <textarea name="resolution_notes" rows="3" placeholder="Enter work notes or resolution explanation...">{{ complaint.resolution_notes or '' }}</textarea>
+      </label>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        Update Complaint <i class="fa-solid fa-check"></i>
+      </button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

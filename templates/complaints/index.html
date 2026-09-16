@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Maintenance Complaints — SmartHostel{% endblock %}
+
+{% block content %}
+<div class="page-header flex-header">
+  <div>
+    <h1>Maintenance Complaints</h1>
+    <p class="page-subtitle">Submit and track facility issues from reporting to resolution</p>
+  </div>
+  {% if current_user.role == 'student' %}
+  <a href="{{ url_for('complaint.raise_complaint') }}" class="btn btn-primary">
+    <i class="fa-solid fa-plus"></i> Raise Complaint
+  </a>
+  {% endif %}
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <a href="{{ url_for('complaint.index') }}" class="filter-tab {% if not status_filter %}active{% endif %}">All Complaints</a>
+  {% for status in statuses %}
+  <a href="{{ url_for('complaint.index', status=status) }}" class="filter-tab {% if status_filter == status %}active{% endif %}">{{ status }}</a>
+  {% endfor %}
+</div>
+
+{% if complaints %}
+<div class="complaints-grid">
+  {% for c in complaints %}
+  <div class="complaint-card border-status-{{ c.status.lower().replace(' ', '-') }}">
+    <div class="complaint-card-header">
+      <span class="badge badge-info"><i class="fa-solid fa-tag"></i> {{ c.category }}</span>
+      <span class="status-pill status-{{ c.status.lower().replace(' ', '-') }}">{{ c.status }}</span>
+    </div>
+
+    <h3 class="complaint-title">
+      <a href="{{ url_for('complaint.detail', complaint_id=c.id) }}">#{{ c.id }} — {{ c.title }}</a>
+    </h3>
+
+    <p class="complaint-desc">{{ c.description[:130] }}{% if c.description|length > 130 %}...{% endif %}</p>
+
+    <div class="complaint-meta">
+      <span><i class="fa-solid fa-user"></i> {{ c.student.name }}</span>
+      <span><i class="fa-regular fa-calendar"></i> {{ c.created_at.strftime('%b %d, %Y') }}</span>
+      {% if c.assigned_staff %}
+      <span><i class="fa-solid fa-wrench"></i> Staff: {{ c.assigned_staff.name }}</span>
+      {% endif %}
+    </div>
+
+    <div class="complaint-card-actions">
+      <a href="{{ url_for('complaint.detail', complaint_id=c.id) }}" class="btn btn-sm btn-outline btn-block">
+        View Details & Updates <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="fa-solid fa-triangle-exclamation"></i>
+  <h3>No Complaints Found</h3>
+  <p>There are no complaints matching your current filter.</p>
+</div>
+{% endif %}
+
+{% endblock %}

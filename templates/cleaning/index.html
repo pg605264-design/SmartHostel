@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Room Cleaning — SmartHostel{% endblock %}
+
+{% block content %}
+<div class="page-header flex-header">
+  <div>
+    <h1>Room Cleaning Requests</h1>
+    <p class="page-subtitle">Schedule room cleaning around your timetable or manage task queues</p>
+  </div>
+  {% if current_user.role == 'student' %}
+  <a href="{{ url_for('cleaning.request_cleaning') }}" class="btn btn-primary">
+    <i class="fa-solid fa-plus"></i> Request Cleaning
+  </a>
+  {% endif %}
+</div>
+
+<!-- Filter Tabs -->
+<div class="filter-bar">
+  <a href="{{ url_for('cleaning.index') }}" class="filter-tab {% if not status_filter %}active{% endif %}">All Requests</a>
+  {% for status in statuses %}
+  <a href="{{ url_for('cleaning.index', status=status) }}" class="filter-tab {% if status_filter == status %}active{% endif %}">{{ status }}</a>
+  {% endfor %}
+</div>
+
+{% if requests %}
+<div class="card-section">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#ID</th>
+          <th>Student</th>
+          <th>Room</th>
+          <th>Preferred Date & Slot</th>
+          <th>Status</th>
+          <th>Assigned Staff</th>
+          {% if current_user.role in ['admin', 'cleaning_staff'] %}
+          <th>Actions</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+        <tr>
+          <td>#{{ req.id }}</td>
+          <td>
+            <div class="user-table-cell">
+              <div class="avatar avatar-xs">{{ req.student.name[:1] }}</div>
+              <div>
+                <strong>{{ req.student.name }}</strong>
+                <div class="text-subtle">{{ req.student.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td>{{ req.room.display_name if req.room else 'N/A' }}</td>
+          <td>
+            <strong>{{ req.preferred_date }}</strong>
+            <div class="text-subtle"><i class="fa-regular fa-clock"></i> {{ req.preferred_slot }}</div>
+          </td>
+          <td>
+            <span class="status-pill status-{{ req.status.lower().replace(' ', '-') }}">{{ req.status }}</span>
+          </td>
+          <td>{{ req.assigned_staff.name if req.assigned_staff else 'Unassigned' }}</td>
+          {% if current_user.role in ['admin', 'cleaning_staff'] %}
+          <td>
+            <form method="POST" action="{{ url_for('cleaning.update_status', request_id=req.id) }}" class="inline-status-form">
+              <select name="status" onchange="this.form.submit()" class="table-select">
+                {% for st in statuses %}
+                <option value="{{ st }}" {% if req.status == st %}selected{% endif %}>{{ st }}</option>
+                {% endfor %}
+              </select>
+              {% if current_user.role == 'admin' and cleaning_staff %}
+              <select name="assigned_staff_id" onchange="this.form.submit()" class="table-select">
+                <option value="">Assign Staff</option>
+                {% for s in cleaning_staff %}
+                <option value="{{ s.id }}" {% if req.assigned_staff_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+              </select>
+              {% endif %}
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% if req.notes %}
+        <tr class="table-subrow">
+          <td colspan="7">
+            <span class="notes-label"><i class="fa-solid fa-note-sticky"></i> Note:</span> {{ req.notes }}
+          </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="fa-solid fa-broom"></i>
+  <h3>No Cleaning Requests</h3>
+  <p>There are no room cleaning requests matching your filter.</p>
+</div>
+{% endif %}
+
+{% endblock %}

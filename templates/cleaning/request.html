@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Request Room Cleaning — SmartHostel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Request Room Cleaning</h1>
+  <p class="page-subtitle">Pick a time slot when your room is free for cleaning staff</p>
+</div>
+
+<div class="card-section max-width-card">
+  <form method="POST" action="{{ url_for('cleaning.request_cleaning') }}">
+    <div class="form-grid">
+      <label class="field">
+        <span>Preferred Date *</span>
+        <input type="date" name="preferred_date" required min="{{ today }}">
+      </label>
+
+      <label class="field">
+        <span>Preferred Time Slot *</span>
+        <select name="preferred_slot" class="input-select" required>
+          <option value="">Select Time Slot</option>
+          <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
+          <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
+          <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
+          <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
+          <option value="03:00 PM - 04:00 PM">03:00 PM - 04:00 PM</option>
+          <option value="04:00 PM - 05:00 PM">04:00 PM - 05:00 PM</option>
+        </select>
+      </label>
+    </div>
+
+    <label class="field">
+      <span>Additional Notes / Special Instructions</span>
+      <textarea name="notes" rows="3" placeholder="e.g. Please clean floor and wipe desk. Key is with roommate."></textarea>
+    </label>
+
+    <div class="form-actions">
+      <a href="{{ url_for('cleaning.index') }}" class="btn btn-outline">Cancel</a>
+      <button type="submit" class="btn btn-primary">Submit Cleaning Request <i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </form>
+</div>
+{% endblock %}

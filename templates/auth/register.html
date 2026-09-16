@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Student Registration — SmartHostel{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block guest_content %}
+<div class="auth-wrapper">
+  <div class="auth-visual">
+    <div class="auth-visual-inner">
+      <i class="fa-solid fa-graduation-cap auth-logo"></i>
+      <h1>Join SmartHostel</h1>
+      <p>Register your student profile to access timetable cleaning, room services, and complaint tracking.</p>
+    </div>
+  </div>
+
+  <div class="auth-form-panel">
+    <!-- Theme Switcher Popover -->
+    <div class="theme-switcher-wrapper auth-theme-toggle">
+      <button class="icon-btn" id="themeToggleBtn" aria-label="Change Appearance Theme">
+        <i class="fa-solid fa-sun theme-trigger-icon"></i>
+      </button>
+
+      <div class="theme-popover" id="themePopover" role="menu" aria-label="Appearance Options">
+        <div class="theme-popover-header">Appearance</div>
+        <button type="button" class="theme-option" data-theme-value="light" role="menuitemradio">
+          <i class="fa-solid fa-sun"></i>
+          <span>Light</span>
+          <i class="fa-solid fa-check check-icon"></i>
+        </button>
+        <button type="button" class="theme-option" data-theme-value="dark" role="menuitemradio">
+          <i class="fa-solid fa-moon"></i>
+          <span>Dark</span>
+          <i class="fa-solid fa-check check-icon"></i>
+        </button>
+        <button type="button" class="theme-option" data-theme-value="system" role="menuitemradio">
+          <i class="fa-solid fa-desktop"></i>
+          <span>System</span>
+          <i class="fa-solid fa-check check-icon"></i>
+        </button>
+      </div>
+    </div>
+
+    <form class="auth-card reg-card" method="POST" action="{{ url_for('auth.register') }}">
+      <h2>Create Student Account</h2>
+      <p class="auth-subtitle">Fill in your student details below</p>
+
+      <div class="form-grid">
+        <label class="field">
+          <span>Full Name *</span>
+          <input type="text" name="name" value="{{ form_data.name or '' }}" placeholder="John Doe" required>
+        </label>
+
+        <label class="field">
+          <span>Student ID *</span>
+          <input type="text" name="student_id" value="{{ form_data.student_id or '' }}" placeholder="STU-1002" required>
+        </label>
+      </div>
+
+      <div class="form-grid">
+        <label class="field">
+          <span>Email Address *</span>
+          <input type="email" name="email" value="{{ form_data.email or '' }}" placeholder="student@example.com" required>
+        </label>
+
+        <label class="field">
+          <span>Phone Number</span>
+          <input type="tel" name="phone" value="{{ form_data.phone or '' }}" placeholder="+91 9876543210">
+        </label>
+      </div>
+
+      <div class="form-grid">
+        <label class="field">
+          <span>Course / Department</span>
+          <input type="text" name="course" value="{{ form_data.course or '' }}" placeholder="Computer Science">
+        </label>
+
+        <label class="field">
+          <span>Year of Study</span>
+          <select name="year" class="input-select">
+            <option value="">Select Year</option>
+            <option value="1">1st Year</option>
+            <option value="2">2nd Year</option>
+            <option value="3">3rd Year</option>
+            <option value="4">4th Year</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="form-grid">
+        <label class="field password-field">
+          <span>Password *</span>
+          <div class="input-with-icon">
+            <input type="password" id="regPassword" name="password" placeholder="••••••••" required>
+            <button type="button" class="pw-toggle-btn" onclick="togglePasswordVisibility('regPassword', this)">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </label>
+
+        <label class="field password-field">
+          <span>Confirm Password *</span>
+          <div class="input-with-icon">
+            <input type="password" id="regConfirmPassword" name="confirm_password" placeholder="••••••••" required>
+            <button type="button" class="pw-toggle-btn" onclick="togglePasswordVisibility('regConfirmPassword', this)">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </label>
+      </div>
+
+      <div class="info-banner">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Room assignments are managed and verified by the hostel warden after registration.</span>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" onclick="setBtnLoading(this)">
+        Register Account <i class="fa-solid fa-user-plus"></i>
+      </button>
+
+      <div class="auth-footer-link">
+        <p>Already have an account? <a href="{{ url_for('auth.login') }}">Log In</a></p>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

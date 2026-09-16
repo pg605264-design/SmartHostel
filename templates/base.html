@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}SmartHostel{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+{% if current_user.is_authenticated %}
+<div class="app-shell">
+  <!-- Mobile Sidebar Drawer Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <i class="fa-solid fa-house-chimney-window"></i>
+      <span>SmartHostel</span>
+    </div>
+    <nav class="sidebar-nav">
+      {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('admin.dashboard') }}" class="nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+          <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('admin.students') }}" class="nav-item {% if request.endpoint and 'admin.student' in request.endpoint %}active{% endif %}">
+          <i class="fa-solid fa-users"></i><span>Students</span>
+        </a>
+        <a href="{{ url_for('admin.rooms') }}" class="nav-item {% if request.endpoint and 'admin.room' in request.endpoint %}active{% endif %}">
+          <i class="fa-solid fa-door-open"></i><span>Rooms</span>
+        </a>
+        <a href="{{ url_for('timetable.index') }}" class="nav-item {% if request.endpoint == 'timetable.index' %}active{% endif %}">
+          <i class="fa-solid fa-calendar-days"></i><span>Timetable</span>
+        </a>
+        <a href="{{ url_for('cleaning.index') }}" class="nav-item {% if request.endpoint == 'cleaning.index' %}active{% endif %}">
+          <i class="fa-solid fa-broom"></i><span>Cleaning</span>
+        </a>
+        <a href="{{ url_for('complaint.index') }}" class="nav-item {% if request.endpoint and 'complaint' in request.endpoint %}active{% endif %}">
+          <i class="fa-solid fa-triangle-exclamation"></i><span>Complaints</span>
+        </a>
+        <a href="{{ url_for('profile.index') }}" class="nav-item {% if request.endpoint and 'profile' in request.endpoint %}active{% endif %}">
+          <i class="fa-solid fa-user"></i><span>Profile</span>
+        </a>
+
+      {% elif current_user.role == 'cleaning_staff' %}
+        <a href="{{ url_for('dashboard.index') }}" class="nav-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+          <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('cleaning.index') }}" class="nav-item {% if request.endpoint == 'cleaning.index' %}active{% endif %}">
+          <i class="fa-solid fa-broom"></i><span>Cleaning Tasks</span>
+        </a>
+        <a href="{{ url_for('profile.index') }}" class="nav-item {% if request.endpoint and 'profile' in request.endpoint %}active{% endif %}">
+          <i class="fa-solid fa-user"></i><span>Profile</span>
+        </a>
+
+      {% elif current_user.role == 'maintenance_staff' %}
+        <a href="{{ url_for('dashboard.index') }}" class="nav-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+          <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('complaint.index') }}" class="nav-item {% if request.endpoint and 'complaint' in request.endpoint %}active{% endif %}">
+          <i class="fa-solid fa-wrench"></i><span>Complaints</span>
+        </a>
+        <a href="{{ url_for('profile.index') }}" class="nav-item {% if request.endpoint and 'profile' in request.endpoint %}active{% endif %}">
+          <i class="fa-solid fa-user"></i><span>Profile</span>
+        </a>
+
+      {% else %} {# Student #}
+        <a href="{{ url_for('dashboard.index') }}" class="nav-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+          <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('room.my_room') }}" class="nav-item {% if request.endpoint == 'room.my_room' %}active{% endif %}">
+          <i class="fa-solid fa-door-closed"></i><span>My Room</span>
+        </a>
+        <a href="{{ url_for('timetable.index') }}" class="nav-item {% if request.endpoint == 'timetable.index' %}active{% endif %}">
+          <i class="fa-solid fa-calendar-days"></i><span>Timetable</span>
+        </a>
+        <a href="{{ url_for('cleaning.index') }}" class="nav-item {% if request.endpoint and 'cleaning' in request.endpoint %}active{% endif %}">
+          <i class="fa-solid fa-broom"></i><span>Cleaning</span>
+        </a>
+        <a href="{{ url_for('complaint.index') }}" class="nav-item {% if request.endpoint and 'complaint' in request.endpoint %}active{% endif %}">
+          <i class="fa-solid fa-triangle-exclamation"></i><span>Complaints</span>
+        </a>
+        <a href="{{ url_for('profile.index') }}" class="nav-item {% if request.endpoint and 'profile' in request.endpoint %}active{% endif %}">
+          <i class="fa-solid fa-user"></i><span>Profile</span>
+        </a>
+      {% endif %}
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('auth.logout') }}" class="nav-item logout">
+        <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <!-- Top Navigation Bar -->
+    <header class="topbar">
+      <button class="icon-btn" id="sidebarToggle" aria-label="Toggle Navigation Menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-spacer"></div>
+
+      <!-- Notification Center Bell -->
+      <div class="notif-wrapper">
+        <button class="icon-btn" id="notifToggle" aria-label="Notifications" onclick="toggleNotifDropdown(event)">
+          <i class="fa-solid fa-bell"></i>
+          {% if unread_notifications_count and unread_notifications_count > 0 %}
+          <span class="notif-badge">{{ unread_notifications_count }}</span>
+          {% endif %}
+        </button>
+
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header">
+            <h4>Notifications</h4>
+            {% if unread_notifications_count and unread_notifications_count > 0 %}
+            <form method="POST" action="{{ url_for('dashboard.mark_all_notifications_read') }}">
+              <button type="submit" class="notif-clear-btn">Mark all as read</button>
+            </form>
+            {% endif %}
+          </div>
+          <div class="notif-body">
+            {% if notifications %}
+              {% for n in notifications %}
+              <div class="notif-item {% if not n.is_read %}notif-unread{% endif %}" onclick="markNotifRead({{ n.id }}, '{{ n.link or '#' }}')">
+                <div class="notif-icon"><i class="fa-solid {{ n.icon }}"></i></div>
+                <div class="notif-text">
+                  <strong class="notif-title">{{ n.title }}</strong>
+                  <p class="notif-msg">{{ n.message }}</p>
+                  <span class="notif-time">{{ n.time_ago() }}</span>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="notif-empty">No new notifications</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Polished Theme Switcher Popover -->
+      <div class="theme-switcher-wrapper">
+        <button class="icon-btn" id="themeToggleBtn" aria-label="Change Appearance Theme" aria-haspopup="true">
+          <i class="fa-solid fa-sun theme-trigger-icon"></i>
+        </button>
+
+        <div class="theme-popover" id="themePopover" role="menu" aria-label="Appearance Options">
+          <div class="theme-popover-header">Appearance</div>
+          <button type="button" class="theme-option" data-theme-value="light" role="menuitemradio">
+            <i class="fa-solid fa-sun"></i>
+            <span>Light</span>
+            <i class="fa-solid fa-check check-icon"></i>
+          </button>
+          <button type="button" class="theme-option" data-theme-value="dark" role="menuitemradio">
+            <i class="fa-solid fa-moon"></i>
+            <span>Dark</span>
+            <i class="fa-solid fa-check check-icon"></i>
+          </button>
+          <button type="button" class="theme-option" data-theme-value="system" role="menuitemradio">
+            <i class="fa-solid fa-desktop"></i>
+            <span>System</span>
+            <i class="fa-solid fa-check check-icon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- User Avatar Chip -->
+      <a href="{{ url_for('profile.index') }}" class="user-chip" title="View Profile">
+        <div class="avatar">{{ current_user.name[:1] }}</div>
+        <div class="user-chip-text">
+          <strong>{{ current_user.name }}</strong>
+          <span>{{ current_user.role.replace('_', ' ').title() }}</span>
+        </div>
+      </a>
+    </header>
+
+    <main class="content">
+      {% include "_flash.html" %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% else %}
+  {% include "_flash.html" %}
+  {% block guest_content %}{% endblock %}
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

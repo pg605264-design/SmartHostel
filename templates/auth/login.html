@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+{% block title %}Login — SmartHostel{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block guest_content %}
+
+<div class="auth-page-wrapper">
+
+  <!-- =========================
+       LEFT BRAND / HERO SECTION
+       ========================= -->
+  <section class="auth-hero">
+
+    <div class="hero-glow hero-glow-1"></div>
+    <div class="hero-glow hero-glow-2"></div>
+
+    <div class="auth-hero-content">
+
+      <!-- Brand -->
+      <div class="auth-brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-house-chimney-window"></i>
+        </div>
+
+        <div>
+          <span class="brand-name">SmartHostel</span>
+          <span class="brand-tagline">Smart living. Better campus life.</span>
+        </div>
+      </div>
+
+      <!-- Main Hero -->
+      <div class="auth-hero-main">
+
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          SMART HOSTEL MANAGEMENT
+        </div>
+
+        <h1>
+          Your Hostel.<br>
+          <span>Smarter.</span>
+        </h1>
+
+        <p>
+          Manage your room, cleaning, complaints and daily schedule
+          — all from one simple platform built for student life.
+        </p>
+
+        <!-- Features -->
+        <div class="hero-feature-list">
+
+          <div class="hero-feature">
+            <div class="feature-icon">
+              <i class="fa-solid fa-broom"></i>
+            </div>
+
+            <div>
+              <strong>Smart Cleaning</strong>
+              <span>Book cleaning around your classes</span>
+            </div>
+          </div>
+
+          <div class="hero-feature">
+            <div class="feature-icon">
+              <i class="fa-solid fa-list-check"></i>
+            </div>
+
+            <div>
+              <strong>Track Complaints</strong>
+              <span>Know exactly what is happening</span>
+            </div>
+          </div>
+
+          <div class="hero-feature">
+            <div class="feature-icon">
+              <i class="fa-solid fa-calendar-days"></i>
+            </div>
+
+            <div>
+              <strong>Class-Aware</strong>
+              <span>Everything works around your timetable</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Bottom -->
+      <div class="hero-bottom">
+        <span>
+          <i class="fa-solid fa-shield-halved"></i>
+          Built for students, staff & wardens
+        </span>
+
+        <span>
+          <i class="fa-solid fa-circle-check"></i>
+          Simple & secure
+        </span>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- =========================
+       RIGHT LOGIN SECTION
+       ========================= -->
+  <section class="auth-login-section">
+
+    <!-- Theme Switcher -->
+    <div class="auth-top-actions">
+
+      <div class="theme-switcher-wrapper">
+
+        <button
+          class="icon-btn auth-theme-btn"
+          id="themeToggleBtn"
+          aria-label="Change Appearance Theme"
+          aria-haspopup="true"
+        >
+          <i class="fa-solid fa-sun theme-trigger-icon"></i>
+        </button>
+
+        <div
+          class="theme-popover"
+          id="themePopover"
+          role="menu"
+          aria-label="Appearance Options"
+        >
+
+          <div class="theme-popover-header">
+            Appearance
+          </div>
+
+          <button
+            type="button"
+            class="theme-option"
+            data-theme-value="light"
+            role="menuitemradio"
+          >
+            <i class="fa-solid fa-sun"></i>
+            <span>Light</span>
+            <i class="fa-solid fa-check check-icon"></i>
+          </button>
+
+          <button
+            type="button"
+            class="theme-option"
+            data-theme-value="dark"
+            role="menuitemradio"
+          >
+            <i class="fa-solid fa-moon"></i>
+            <span>Dark</span>
+            <i class="fa-solid fa-check check-icon"></i>
+          </button>
+
+          <button
+            type="button"
+            class="theme-option"
+            data-theme-value="system"
+            role="menuitemradio"
+          >
+            <i class="fa-solid fa-desktop"></i>
+            <span>System</span>
+            <i class="fa-solid fa-check check-icon"></i>
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- Login Card -->
+    <div class="login-container">
+
+      <div class="mobile-brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-house-chimney-window"></i>
+        </div>
+        <span>SmartHostel</span>
+      </div>
+
+
+      <div class="login-heading">
+
+        <span class="welcome-label">
+          WELCOME BACK
+        </span>
+
+        <h2>
+          Sign in to your<br>
+          <span>SmartHostel account.</span>
+        </h2>
+
+        <p>
+          Continue managing your hostel life effortlessly.
+        </p>
+
+      </div>
+
+
+      <!-- Login Form -->
+      <form
+        class="modern-login-form"
+        method="POST"
+        action="{{ url_for('auth.login') }}"
+      >
+
+        <!-- Email -->
+        <label class="modern-field">
+
+          <span class="modern-field-label">
+            Email Address
+          </span>
+
+          <div class="modern-input-wrapper">
+
+            <i class="fa-regular fa-envelope"></i>
+
+            <input
+              type="email"
+              name="email"
+              placeholder="you@smarthostel.demo"
+              required
+              autofocus
+            >
+
+          </div>
+
+        </label>
+
+
+        <!-- Password -->
+        <label class="modern-field">
+
+          <span class="modern-field-label">
+            Password
+          </span>
+
+          <div class="modern-input-wrapper">
+
+            <i class="fa-solid fa-lock"></i>
+
+            <input
+              type="password"
+              id="loginPassword"
+              name="password"
+              placeholder="Enter your password"
+              required
+            >
+
+            <button
+              type="button"
+              class="modern-password-toggle"
+              onclick="togglePasswordVisibility('loginPassword', this)"
+              aria-label="Show password"
+            >
+              <i class="fa-solid fa-eye"></i>
+            </button>
+
+          </div>
+
+        </label>
+
+
+        <!-- Remember -->
+        <div class="login-options">
+
+          <label class="modern-checkbox">
+
+            <input
+              type="checkbox"
+              name="remember"
+            >
+
+            <span class="custom-checkbox"></span>
+
+            <span>Remember me</span>
+
+          </label>
+
+          <span class="secure-login">
+            <i class="fa-solid fa-shield-halved"></i>
+            Secure login
+          </span>
+
+        </div>
+
+
+        <!-- Login Button -->
+        <button
+          type="submit"
+          class="modern-login-btn"
+          onclick="setBtnLoading(this)"
+        >
+
+          <span>Sign In</span>
+
+          <span class="login-arrow">
+            <i class="fa-solid fa-arrow-right"></i>
+          </span>
+
+        </button>
+
+      </form>
+
+
+      <!-- Register -->
+      <div class="register-section">
+
+        <span>Don't have an account?</span>
+
+        <a href="{{ url_for('auth.register') }}">
+          Create an account
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </a>
+
+      </div>
+
+
+      <!-- Demo Accounts -->
+      <div class="demo-section">
+
+        <div class="demo-heading">
+          <span></span>
+          <p>QUICK DEMO ACCESS</p>
+          <span></span>
+        </div>
+
+        <p class="demo-description">
+          Select an account to automatically fill the login details.
+        </p>
+
+        <div class="demo-chip-row">
+
+          <button
+            type="button"
+            class="demo-account student"
+            onclick="fillLogin('student@smarthostel.demo', 'Student@123')"
+          >
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span>Student</span>
+          </button>
+
+          <button
+            type="button"
+            class="demo-account admin"
+            onclick="fillLogin('admin@smarthostel.demo', 'Admin@123')"
+          >
+            <i class="fa-solid fa-user-shield"></i>
+            <span>Admin</span>
+          </button>
+
+          <button
+            type="button"
+            class="demo-account cleaning"
+            onclick="fillLogin('cleaning@smarthostel.demo', 'Cleaning@123')"
+          >
+            <i class="fa-solid fa-broom"></i>
+            <span>Cleaning</span>
+          </button>
+
+          <button
+            type="button"
+            class="demo-account maintenance"
+            onclick="fillLogin('maintenance@smarthostel.demo', 'Maintenance@123')"
+          >
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+            <span>Maintenance</span>
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+{% endblock %}

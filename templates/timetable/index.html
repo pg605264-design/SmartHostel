@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Class Timetable — SmartHostel{% endblock %}
+
+{% block content %}
+<div class="page-header flex-header">
+  <div>
+    <h1>Class Timetable</h1>
+    <p class="page-subtitle">Weekly academic schedule & class location overview</p>
+  </div>
+  {% if current_user.role in ['admin', 'cleaning_staff', 'maintenance_staff'] %}
+  <button type="button" class="btn btn-primary" onclick="toggleModal('addTimetableModal')">
+    <i class="fa-solid fa-plus"></i> Add Class Slot
+  </button>
+  {% endif %}
+</div>
+
+{% if total_entries > 0 %}
+<!-- Day Filter Tabs for Mobile & Quick Navigation -->
+<div class="filter-bar timetable-filter-bar">
+  <button type="button" class="filter-tab active" onclick="filterTimetableDay('all', this)">All Days</button>
+  {% for day in days %}
+  <button type="button" class="filter-tab" onclick="filterTimetableDay('{{ day }}', this)">{{ day[:3].upper() }}</button>
+  {% endfor %}
+</div>
+
+<!-- Weekly Schedule Grid -->
+<div class="timetable-grid" id="timetableGrid">
+  {% for day in days %}
+  <div class="day-card timetable-day-card" data-day="{{ day }}">
+    <div class="day-header">
+      <div class="day-header-title">
+        <i class="fa-solid fa-calendar-day"></i>
+        <h3>{{ day }}</h3>
+      </div>
+      <span class="badge badge-secondary">{{ schedule[day]|length }} Classes</span>
+    </div>
+
+    <div class="day-classes">
+      {% if schedule[day] %}
+        {% for item in schedule[day] %}
+        <div class="class-slot-card">
+          <div class="class-time-badge">
+            <i class="fa-regular fa-clock"></i> {{ item.start_time }} – {{ item.end_time }}
+          </div>
+          <h4 class="class-title">{{ item.subject }}</h4>
+
+          <div class="class-meta-group">
+            <span class="meta-pill"><i class="fa-solid fa-location-dot"></i> {{ item.room_number }}</span>
+            {% if item.faculty %}
+            <span class="meta-pill"><i class="fa-solid fa-chalkboard-user"></i> {{ item.faculty }}</span>
+            {% endif %}
+          </div>
+
+          {% if current_user.role == 'admin' %}
+          <form method="POST" action="{{ url_for('timetable.delete_entry', entry_id=item.id) }}" class="inline-form delete-slot-form" onsubmit="return confirm('Delete this timetable entry?');">
+            <button type="submit" class="icon-btn-danger" title="Delete Entry"><i class="fa-solid fa-trash"></i></button>
+          </form>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-day-slot">
+          <i class="fa-solid fa-bed"></i>
+          <span>No classes scheduled</span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="fa-solid fa-calendar-xmark"></i>
+  <h3>No Timetable Entries Found</h3>
+  <p>There are no classes scheduled in the timetable yet. Staff or admins can add timetable entries above.</p>
+</div>
+{% endif %}
+
+<!-- Add Timetable Entry Modal -->
+{% if current_user.role in ['admin', 'cleaning_staff', 'maintenance_staff'] %}
+<div class="modal" id="addTimetableModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Add Timetable Class</h3>
+      <button type="button" class="modal-close" onclick="toggleModal('addTimetableModal')">&times;</button>
+    </div>
+    <form method="POST" action="{{ url_for('timetable.add_entry') }}">
+      <div class="form-grid">
+        <label class="field">
+          <span>Day of Week *</span>
+          <select name="day" class="input-select" required>
+            {% for day in days %}
+            <option value="{{ day }}">{{ day }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="field">
+          <span>Subject / Course Name *</span>
+          <input type="text" name="subject" placeholder="Data Structures" required>
+        </label>
+      </div>
+
+      <div class="form-grid">
+        <label class="field">
+          <span>Start Time *</span>
+          <input type="text" name="start_time" placeholder="09:00 AM" required>
+        </label>
+        <label class="field">
+          <span>End Time *</span>
+          <input type="text" name="end_time" placeholder="10:30 AM" required>
+        </label>
+      </div>
+
+      <div class="form-grid">
+        <label class="field">
+          <span>Classroom Number *</span>
+          <input type="text" name="room_number" placeholder="LH-101" required>
+        </label>
+        <label class="field">
+          <span>Faculty Name</span>
+          <input type="text" name="faculty" placeholder="Dr. Gupta">
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="toggleModal('addTimetableModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" onclick="setBtnLoading(this)">
+          <i class="fa-solid fa-plus"></i> Add Class
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function filterTimetableDay(day, btn) {
+  document.querySelectorAll('.timetable-filter-bar .filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+
+  const cards = document.querySelectorAll('.timetable-day-card');
+  cards.forEach(card => {
+    if (day === 'all' || card.getAttribute('data-day') === day) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+</script>
+{% endblock %}

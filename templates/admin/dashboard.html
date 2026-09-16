@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — SmartHostel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Admin Control Center 👋</h1>
+    <p class="page-subtitle">{{ today }} • System Overview</p>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-users"></i></div>
+    <div>
+      <span class="stat-label">Total Active Students</span>
+      <strong class="stat-value">{{ total_students }}</strong>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-purple"><i class="fa-solid fa-door-open"></i></div>
+    <div>
+      <span class="stat-label">Rooms (Occupied / Total)</span>
+      <strong class="stat-value">{{ room_stats.occupied }} / {{ room_stats.total }}</strong>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-orange"><i class="fa-solid fa-user-clock"></i></div>
+    <div>
+      <span class="stat-label">Pending Room Assignments</span>
+      <strong class="stat-value">{{ pending_assignments }}</strong>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green"><i class="fa-solid fa-user-shield"></i></div>
+    <div>
+      <span class="stat-label">Active Staff Members</span>
+      <strong class="stat-value">{{ active_staff }}</strong>
+    </div>
+  </div>
+</div>
+
+<div class="quick-actions">
+  <a href="{{ url_for('admin.students') }}" class="qa-btn"><i class="fa-solid fa-users"></i> Student Management</a>
+  <a href="{{ url_for('admin.rooms') }}" class="qa-btn"><i class="fa-solid fa-door-open"></i> Room Management</a>
+  <a href="{{ url_for('admin.create_room_view') }}" class="qa-btn"><i class="fa-solid fa-plus"></i> Create New Room</a>
+  <a href="{{ url_for('complaint.index') }}" class="qa-btn"><i class="fa-solid fa-triangle-exclamation"></i> Manage Complaints</a>
+  <a href="{{ url_for('cleaning.index') }}" class="qa-btn"><i class="fa-solid fa-broom"></i> Manage Cleaning</a>
+  <a href="{{ url_for('timetable.index') }}" class="qa-btn"><i class="fa-solid fa-calendar-days"></i> Manage Timetable</a>
+</div>
+{% endblock %}

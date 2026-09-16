@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Room Details {{ room.display_name }} — SmartHostel Admin{% endblock %}
+
+{% block content %}
+<div class="page-header flex-header">
+  <div>
+    <a href="{{ url_for('admin.rooms') }}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Rooms</a>
+    <h1>Room {{ room.display_name }} Overview</h1>
+    <p class="page-subtitle">{{ room.hostel }} • Block {{ room.block }} • Floor {{ room.floor }}</p>
+  </div>
+  <div>
+    <a href="{{ url_for('admin.edit_room', room_id=room.id) }}" class="btn btn-secondary">
+      <i class="fa-solid fa-pen-to-square"></i> Edit Room Specs
+    </a>
+  </div>
+</div>
+
+<div class="profile-grid">
+  <!-- Specifications Card -->
+  <div class="card-section">
+    <div class="card-header">
+      <i class="fa-solid fa-building"></i>
+      <h3>Room Specifications</h3>
+    </div>
+    <div class="info-list">
+      <div class="info-item"><span class="info-label">Hostel & Block</span><span class="info-value"><strong>{{ room.hostel }} (Block {{ room.block }})</strong></span></div>
+      <div class="info-item"><span class="info-label">Floor</span><span class="info-value">Floor {{ room.floor }}</span></div>
+      <div class="info-item"><span class="info-label">Room Number</span><span class="info-value"><strong>{{ room.room_number }}</strong></span></div>
+      <div class="info-item"><span class="info-label">Room Type</span><span class="info-value">{{ room.room_type }}</span></div>
+      <div class="info-item"><span class="info-label">Capacity Limit</span><span class="info-value">{{ room.capacity }} Students</span></div>
+      <div class="info-item"><span class="info-label">Occupancy Count</span><span class="info-value"><code>{{ occupants|length }} / {{ room.capacity }}</code></span></div>
+      <div class="info-item">
+        <span class="info-label">Operational Status</span>
+        <span class="info-value"><span class="status-pill status-{{ room.status.lower().replace(' ', '-') }}">{{ room.status }}</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Occupant Management Card -->
+  <div class="card-section">
+    <div class="card-header">
+      <i class="fa-solid fa-users"></i>
+      <h3>Current Occupants ({{ occupants|length }}/{{ room.capacity }})</h3>
+    </div>
+
+    {% if occupants %}
+    <div class="info-list mb-4">
+      {% for occ in occupants %}
+      <div class="occupant-list-item">
+        <div>
+          <strong>{{ occ.user.name }}</strong> (ID: {{ occ.student_id }})
+          <div class="text-subtle">{{ occ.user.email }}</div>
+        </div>
+        <form method="POST" action="{{ url_for('admin.remove_student', room_id=room.id) }}" class="inline-form">
+          <input type="hidden" name="profile_id" value="{{ occ.id }}">
+          <button type="submit" class="btn-sm btn-outline-danger" onclick="return confirm('Remove student from room?');">
+            Remove
+          </button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-secondary mb-4">No students currently assigned to this room.</p>
+    {% endif %}
+
+    {% if not room.is_full and room.status in ['Available', 'Occupied'] %}
+    <form method="POST" action="{{ url_for('admin.assign_student', room_id=room.id) }}" class="form-compact border-top pt-3">
+      <h4>Assign Student to Room</h4>
+      <label class="field">
+        <span>Select Unassigned Student</span>
+        <select name="profile_id" class="input-select" required>
+          <option value="">Choose Student</option>
+          {% for st in unassigned %}
+          <option value="{{ st.id }}">{{ st.user.name }} (ID: {{ st.student_id }})</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit" class="btn btn-primary btn-block">Assign Student</button>
+    </form>
+    {% elif room.is_full %}
+    <div class="info-banner warning-banner">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>Room is at maximum capacity ({{ room.capacity }} students). Cannot assign additional students.</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{% if is_edit %}Edit Room {{ room.display_name }}{% else %}Add New Room{% endif %} — SmartHostel Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <a href="{{ url_for('admin.rooms') }}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Rooms</a>
+  <h1>{% if is_edit %}Edit Room {{ room.display_name }}{% else %}Add New Room{% endif %}</h1>
+  <p class="page-subtitle">Configure room location, type, capacity, and operational status</p>
+</div>
+
+<div class="card-section max-width-card">
+  <form method="POST" action="{% if is_edit %}{{ url_for('admin.edit_room', room_id=room.id) }}{% else %}{{ url_for('admin.create_room_view') }}{% endif %}">
+    <div class="form-grid">
+      <label class="field">
+        <span>Hostel Name *</span>
+        <input type="text" name="hostel" value="{{ form_data.hostel or '' }}" placeholder="Hostel A / Boys Hostel" required>
+      </label>
+
+      <label class="field">
+        <span>Block / Building *</span>
+        <input type="text" name="block" value="{{ form_data.block or '' }}" placeholder="B" required>
+      </label>
+    </div>
+
+    <div class="form-grid">
+      <label class="field">
+        <span>Floor Number *</span>
+        <input type="number" name="floor" value="{{ form_data.floor or '' }}" placeholder="2" required min="0">
+      </label>
+
+      <label class="field">
+        <span>Room Number *</span>
+        <input type="text" name="room_number" value="{{ form_data.room_number or '' }}" placeholder="204" required>
+      </label>
+    </div>
+
+    <div class="form-grid">
+      <label class="field">
+        <span>Room Type *</span>
+        <select name="room_type" class="input-select" required>
+          {% for t in room_types %}
+          <option value="{{ t }}" {% if form_data.room_type == t %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Room Capacity *</span>
+        <input type="number" name="capacity" value="{{ form_data.capacity or 2 }}" required min="1">
+      </label>
+    </div>
+
+    <label class="field">
+      <span>Operational Status</span>
+      <select name="status" class="input-select">
+        {% for st in statuses %}
+        <option value="{{ st }}" {% if form_data.status == st %}selected{% endif %}>{{ st }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <div class="form-actions">
+      <a href="{{ url_for('admin.rooms') }}" class="btn btn-outline">Cancel</a>
+      <button type="submit" class="btn btn-primary">
+        {% if is_edit %}Save Changes{% else %}Create Room{% endif %} <i class="fa-solid fa-check"></i>
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

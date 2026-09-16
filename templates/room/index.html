@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}My Room — SmartHostel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>My Room Information</h1>
+  <p class="page-subtitle">View details of your assigned hostel room and room occupants</p>
+</div>
+
+{% if room %}
+<div class="room-hero-card">
+  <div class="room-hero-header">
+    <div>
+      <span class="badge badge-primary">{{ room.hostel }}</span>
+      <h2>ROOM {{ room.display_name }}</h2>
+      <p class="room-subtitle">Block {{ room.block }} • Floor {{ room.floor }} • {{ room.room_type }} Room</p>
+    </div>
+    <div class="room-status-wrapper">
+      <span class="status-pill status-{{ room.status.lower().replace(' ', '-') }}">{{ room.status }}</span>
+    </div>
+  </div>
+
+  <div class="stat-grid room-meta-grid">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-users"></i></div>
+      <div>
+        <span class="stat-label">Occupancy</span>
+        <strong class="stat-value">{{ occupants|length }} / {{ room.capacity }}</strong>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-purple"><i class="fa-solid fa-building"></i></div>
+      <div>
+        <span class="stat-label">Hostel & Block</span>
+        <strong class="stat-value">{{ room.hostel }} (Block {{ room.block }})</strong>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-green"><i class="fa-solid fa-layer-group"></i></div>
+      <div>
+        <span class="stat-label">Floor</span>
+        <strong class="stat-value">Floor {{ room.floor }}</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card-section">
+  <h3>Room Occupants</h3>
+  <p class="section-desc">Students currently assigned to Room {{ room.display_name }}:</p>
+  
+  <div class="occupant-grid">
+    {% for occ in occupants %}
+    <div class="occupant-card {% if occ.user_id == current_user.id %}current-user-card{% endif %}">
+      <div class="avatar avatar-lg">{{ occ.user.name[:1] }}</div>
+      <div class="occupant-info">
+        <h4>{{ occ.user.name }} {% if occ.user_id == current_user.id %}<span class="badge badge-success">You</span>{% endif %}</h4>
+        <p class="text-secondary"><i class="fa-solid fa-id-badge"></i> {{ occ.student_id }}</p>
+        <p class="text-secondary"><i class="fa-solid fa-graduation-cap"></i> {{ occ.course or 'N/A' }} ({{ occ.year ~ ' Yr' if occ.year else 'N/A' }})</p>
+        <p class="text-secondary"><i class="fa-solid fa-envelope"></i> {{ occ.user.email }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% else %}
+<div class="empty-state">
+  <i class="fa-solid fa-door-closed"></i>
+  <h3>No Room Linked Yet</h3>
+  <p>You have not been assigned to a hostel room by the admin/warden. Once assigned, your room specifications and roommates will appear here.</p>
+</div>
+{% endif %}
+
+{% endblock %}
